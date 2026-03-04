@@ -87,7 +87,7 @@ export default function Pomodoro() {
   const sessionBlocks = sessions > 0 ? Array.from({ length: Math.min(sessions, 8) }) : [];
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <Timer size={24} className="text-primary-500" />

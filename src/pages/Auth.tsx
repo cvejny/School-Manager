@@ -45,7 +45,7 @@ export default function Auth() {
         </div>
 
         {/* Card */}
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8">
           {/* Tabs */}
           <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-6">
             <button

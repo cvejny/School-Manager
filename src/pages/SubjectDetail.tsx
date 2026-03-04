@@ -129,7 +129,7 @@ pre{white-space:pre-wrap;font-family:inherit;line-height:1.6}</style></head>
     <div className="flex flex-col h-full">
       {/* Subject Header */}
       <div
-        className="px-8 pt-6 pb-0 border-b border-gray-100 dark:border-gray-800"
+        className="px-4 sm:px-8 pt-6 pb-0 border-b border-gray-100 dark:border-gray-800"
         style={{ background: `linear-gradient(135deg, ${subject.color}08, transparent)` }}
       >
         <div className="flex items-start gap-4 mb-5">
@@ -196,7 +196,7 @@ pre{white-space:pre-wrap;font-family:inherit;line-height:1.6}</style></head>
       {/* Content */}
       <div className={`flex-1 ${showNoteEditor && tab === 'notes' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {tab === 'tasks' && (
-          <div className="p-8 max-w-4xl">
+          <div className="p-4 sm:p-8 max-w-4xl">
             <div className="flex items-center justify-between mb-5">
               {/* Filter */}
               <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
@@ -327,7 +327,7 @@ pre{white-space:pre-wrap;font-family:inherit;line-height:1.6}</style></head>
               />
             </div>
           ) : (
-          <div className="p-8 max-w-6xl">
+          <div className="p-4 sm:p-8 max-w-6xl">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-700 dark:text-gray-300">Zápisky</h2>
               <div className="flex items-center gap-2">

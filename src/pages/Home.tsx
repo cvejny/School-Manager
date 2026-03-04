@@ -78,7 +78,7 @@ export default function Home() {
   const today = format(new Date(), 'EEEE, d. MMMM yyyy', { locale: cs });
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
