@@ -1,5 +1,7 @@
-import { Sun, Moon, Monitor, Clock, SortAsc, Eye, Palette, Globe, Trash2, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { Sun, Moon, Monitor, Clock, SortAsc, Eye, Palette, Globe, Trash2, Lock, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 import type { Theme, SortOption } from '../types';
 
 export default function Settings() {
@@ -23,6 +25,23 @@ export default function Settings() {
       localStorage.removeItem('school-manager-data');
       window.location.reload();
     }
+  };
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const handleChangePassword = async () => {
+    setPwError('');
+    setPwSuccess(false);
+    if (newPassword.length < 6) { setPwError('Heslo musí mít alespoň 6 znaků.'); return; }
+    if (newPassword !== confirmPassword) { setPwError('Hesla se neshodují.'); return; }
+    setPwLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwLoading(false);
+    if (error) { setPwError(error.message); } else { setPwSuccess(true); setNewPassword(''); setConfirmPassword(''); }
   };
 
   return (
@@ -169,6 +188,49 @@ export default function Settings() {
           >
             <Trash2 size={15} />Smazat všechna data
           </button>
+        </div>
+
+        {/* Password change */}
+        <div className="card p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Lock size={18} className="text-primary-500" />
+            <h2 className="font-bold text-gray-900 dark:text-white">Změna hesla</h2>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="label">Nové heslo</label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Alespoň 6 znaků"
+                value={newPassword}
+                onChange={e => { setNewPassword(e.target.value); setPwSuccess(false); setPwError(''); }}
+              />
+            </div>
+            <div>
+              <label className="label">Potvrdit heslo</label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Zopakuj nové heslo"
+                value={confirmPassword}
+                onChange={e => { setConfirmPassword(e.target.value); setPwSuccess(false); setPwError(''); }}
+              />
+            </div>
+            {pwError && <p className="text-sm text-red-500">{pwError}</p>}
+            {pwSuccess && (
+              <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                <Check size={14} />Heslo bylo úspěšně změněno.
+              </p>
+            )}
+            <button
+              onClick={handleChangePassword}
+              disabled={pwLoading || !newPassword || !confirmPassword}
+              className="btn-primary w-full"
+            >
+              {pwLoading ? 'Ukládám…' : 'Změnit heslo'}
+            </button>
+          </div>
         </div>
 
         {/* About */}
