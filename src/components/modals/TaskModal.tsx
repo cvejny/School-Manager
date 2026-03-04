@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, RefreshCw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { PRIORITY_CONFIG } from '../../utils/helpers';
+import { PRIORITY_CONFIG, getOrderedSubjects } from '../../utils/helpers';
 import type { Task, Priority, TaskStatus, RecurringInterval, RecurringEnd } from '../../types';
 
 interface Props {
@@ -155,7 +155,7 @@ export default function TaskModal({ task, defaultSubjectId, onClose, onSaved }: 
               <label className="label">Předmět *</label>
               <select className="select" value={subjectId} onChange={e => handleSubjectChange(e.target.value)}>
                 {data.subjects.length === 0 && <option value="">Nejprve přidej předmět</option>}
-                {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {getOrderedSubjects(data.subjects).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
 

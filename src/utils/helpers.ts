@@ -106,3 +106,20 @@ export function sortTasks(tasks: Task[], sort: string): Task[] {
     }
   });
 }
+
+export function getOrderedSubjects<T extends { id: string }>(subjects: T[]): T[] {
+  try {
+    const order: string[] = JSON.parse(localStorage.getItem('subject_order') || '[]');
+    if (order.length === 0) return subjects;
+    return [...subjects].sort((a, b) => {
+      const ai = order.indexOf(a.id);
+      const bi = order.indexOf(b.id);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  } catch {
+    return subjects;
+  }
+}

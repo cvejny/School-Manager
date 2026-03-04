@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { getOrderedSubjects } from '../../utils/helpers';
 import type { TimetableEntry } from '../../types';
 
 export const PERIODS = [
@@ -137,7 +138,7 @@ export default function TimetableEntryModal({ entry, defaultDay, defaultPeriod, 
             <label className="label">Předmět (volitelné)</label>
             <select className="input" value={subjectId} onChange={e => setSubjectId(e.target.value)}>
               <option value="">— bez předmětu —</option>
-              {data.subjects.map(s => (
+              {getOrderedSubjects(data.subjects).map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>

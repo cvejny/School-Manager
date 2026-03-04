@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, CheckCircle2, Clock, AlertTriangle, CalendarX, Settings2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { sortTasks, isDueSoon, isOverdue, PRIORITY_CONFIG } from '../utils/helpers';
+import { sortTasks, isDueSoon, isOverdue, PRIORITY_CONFIG, getOrderedSubjects } from '../utils/helpers';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import TaskModal from '../components/modals/TaskModal';
@@ -267,7 +267,7 @@ export default function Home() {
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                     >Vše</button>
-                    {data.subjects.map(s => (
+                    {getOrderedSubjects(data.subjects).map(s => (
                       <button
                         key={s.id}
                         onClick={() => toggleFilter(filterSubjects, s.id, setFilterSubjects)}
