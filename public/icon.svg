@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#6366f1"/>
+  <!-- Open book -->
+  <rect x="96" y="160" width="140" height="200" rx="12" fill="white" opacity="0.2"/>
+  <rect x="100" y="164" width="132" height="192" rx="10" fill="white"/>
+  <rect x="276" y="160" width="140" height="200" rx="12" fill="white" opacity="0.2"/>
+  <rect x="280" y="164" width="132" height="192" rx="10" fill="white"/>
+  <!-- Spine -->
+  <rect x="244" y="160" width="24" height="200" fill="#6366f1"/>
+  <rect x="252" y="160" width="8" height="200" fill="white" opacity="0.3"/>
+  <!-- Lines on pages -->
+  <rect x="120" y="200" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="120" y="220" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="120" y="240" width="72" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="120" y="260" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="120" y="280" width="60" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="300" y="200" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="300" y="220" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="300" y="240" width="72" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="300" y="260" width="92" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <rect x="300" y="280" width="60" height="8" rx="4" fill="#6366f1" opacity="0.3"/>
+  <!-- Bottom shadow -->
+  <rect x="96" y="352" width="320" height="12" rx="6" fill="white" opacity="0.15"/>
+</svg>
