@@ -27,6 +27,7 @@ export default function Settings() {
     }
   };
 
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
@@ -36,12 +37,19 @@ export default function Settings() {
   const handleChangePassword = async () => {
     setPwError('');
     setPwSuccess(false);
-    if (newPassword.length < 6) { setPwError('Heslo musí mít alespoň 6 znaků.'); return; }
+    if (!currentPassword) { setPwError('Zadej aktuální heslo.'); return; }
+    if (newPassword.length < 6) { setPwError('Nové heslo musí mít alespoň 6 znaků.'); return; }
     if (newPassword !== confirmPassword) { setPwError('Hesla se neshodují.'); return; }
     setPwLoading(true);
+    // Re-authenticate with current password first
+    const { data: { user } } = await supabase.auth.getUser();
+    const email = user?.email;
+    if (!email) { setPwError('Nepodařilo se načíst účet.'); setPwLoading(false); return; }
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+    if (signInError) { setPwError('Aktuální heslo není správné.'); setPwLoading(false); return; }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setPwLoading(false);
-    if (error) { setPwError(error.message); } else { setPwSuccess(true); setNewPassword(''); setConfirmPassword(''); }
+    if (error) { setPwError(error.message); } else { setPwSuccess(true); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }
   };
 
   return (
@@ -198,6 +206,16 @@ export default function Settings() {
           </div>
           <div className="space-y-3">
             <div>
+              <label className="label">Aktuální heslo</label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Tvoje současné heslo"
+                value={currentPassword}
+                onChange={e => { setCurrentPassword(e.target.value); setPwSuccess(false); setPwError(''); }}
+              />
+            </div>
+            <div>
               <label className="label">Nové heslo</label>
               <input
                 type="password"
@@ -225,7 +243,7 @@ export default function Settings() {
             )}
             <button
               onClick={handleChangePassword}
-              disabled={pwLoading || !newPassword || !confirmPassword}
+              disabled={pwLoading || !currentPassword || !newPassword || !confirmPassword}
               className="btn-primary w-full"
             >
               {pwLoading ? 'Ukládám…' : 'Změnit heslo'}
