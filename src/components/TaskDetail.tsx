@@ -43,9 +43,9 @@ export default function TaskDetail({ task, onClose, onDeleted }: Props) {
       const corruptedSpan = task.recurring && spanDays >= intDays;
 
       if (corruptedSpan) {
-        // Show only start
-        const datePart = format(start, 'd. M. yyyy', { locale: cs });
-        return startHasTime ? `${datePart}, ${format(start, 'H:mm')}` : datePart;
+        // Show only dueDate (canonical occurrence date — startDate is from a different occurrence)
+        const datePart = format(due, 'd. M. yyyy', { locale: cs });
+        return dueHasTime ? `${datePart}, ${format(due, 'H:mm')}` : datePart;
       }
 
       const sameDay = startOfDay(start).getTime() === startOfDay(due).getTime();

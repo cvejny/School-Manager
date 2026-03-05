@@ -86,8 +86,8 @@ export function formatTaskDateDisplay(
   // startDate in the past is irrelevant as range anchor
   const startInPast = !!startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date()));
 
-  // Primary anchor: prefer startDate unless past or corrupted
-  const primaryStr = (!startInPast && startDate) ? startDate : (dueDate ?? null);
+  // Primary anchor: prefer startDate unless past, or corrupted (then use dueDate as canonical date)
+  const primaryStr = (corruptedSpan || startInPast) ? (dueDate ?? null) : (startDate ?? dueDate ?? null);
   if (!primaryStr) return { text: '', overdue };
 
   const primary = parseISO(primaryStr);
