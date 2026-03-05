@@ -42,6 +42,15 @@ function advanceDate(date: Date, interval: RecurringInterval): Date {
   }
 }
 
+function intervalToDays(interval: RecurringInterval): number {
+  switch (interval) {
+    case 'daily': return 1;
+    case 'weekly': return 7;
+    case 'biweekly': return 14;
+    case 'monthly': return 30;
+  }
+}
+
 function expandRecurring(task: Task, gridStart: Date, gridEnd: Date, subject: Subject | undefined): CalEvent[] {
   if (!task.recurring || !task.recurringInterval || !task.dueDate) return [];
   if (task.status === 'done' || task.status === 'wont_do') return [];
@@ -49,8 +58,11 @@ function expandRecurring(task: Task, gridStart: Date, gridEnd: Date, subject: Su
   const events: CalEvent[] = [];
   const baseDue = startOfDay(parseISO(task.dueDate));
   const baseStart = task.startDate ? startOfDay(parseISO(task.startDate)) : baseDue;
-  // Duration in days between startDate and dueDate of the original task
-  const durationDays = differenceInCalendarDays(baseDue, baseStart);
+  // Duration in days between startDate and dueDate of the original task.
+  // Safeguard: if duration >= interval length the data is corrupted — virtual occurrences appear as single-day.
+  const rawDuration = differenceInCalendarDays(baseDue, baseStart);
+  const intervalDays = intervalToDays(task.recurringInterval);
+  const durationDays = rawDuration >= intervalDays ? 0 : rawDuration;
 
   let currentDue = advanceDate(baseDue, task.recurringInterval);
   const endDate = task.recurringEndDate ? startOfDay(parseISO(task.recurringEndDate)) : null;
@@ -66,7 +78,7 @@ function expandRecurring(task: Task, gridStart: Date, gridEnd: Date, subject: Su
       const dueDateStr = task.dueDate.includes('T')
         ? format(currentDue, "yyyy-MM-dd") + 'T' + task.dueDate.split('T')[1]
         : format(currentDue, 'yyyy-MM-dd');
-      const startDateStr = task.startDate
+      const startDateStr = durationDays > 0 && task.startDate
         ? (task.startDate.includes('T')
             ? format(currentStart, "yyyy-MM-dd") + 'T' + task.startDate.split('T')[1]
             : format(currentStart, 'yyyy-MM-dd'))
