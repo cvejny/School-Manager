@@ -107,6 +107,15 @@ function calculateNextDueDate(dueDate: string, interval: RecurringInterval): str
   }
 }
 
+function intervalToDays(interval: RecurringInterval): number {
+  switch (interval) {
+    case 'daily': return 1;
+    case 'weekly': return 7;
+    case 'biweekly': return 14;
+    case 'monthly': return 30;
+  }
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(defaultData);
   const [loading, setLoading] = useState(true);
@@ -258,7 +267,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })();
       if (canCreate) {
         const nextDueDate = calculateNextDueDate(currentTask.dueDate, currentTask.recurringInterval);
-        const nextStartDate = currentTask.startDate
+        // Only carry startDate forward if the original span is shorter than the interval.
+        // If span >= interval the original data is corrupted — drop startDate so occurrences are single-point.
+        const spanDays = currentTask.startDate
+          ? Math.abs((parseISO(currentTask.dueDate).getTime() - parseISO(currentTask.startDate).getTime()) / 86400000)
+          : 0;
+        const nextStartDate = currentTask.startDate && spanDays < intervalToDays(currentTask.recurringInterval)
           ? calculateNextDueDate(currentTask.startDate, currentTask.recurringInterval)
           : null;
         // Decrement count for next occurrence
