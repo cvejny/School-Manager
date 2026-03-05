@@ -77,7 +77,7 @@ export function formatTaskDateDisplay(
 ): { text: string; overdue: boolean } {
   // Suppress startDate if span >= recurring interval (corrupted data)
   const spanDays = startDate && dueDate
-    ? Math.abs((parseISO(dueDate).getTime() - parseISO(startDate).getTime()) / 86400000)
+    ? differenceInDays(startOfDay(parseISO(dueDate)), startOfDay(parseISO(startDate)))
     : 0;
   const corruptedSpan = !!recurringInterval && spanDays >= intervalToDays(recurringInterval);
 
