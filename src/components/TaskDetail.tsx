@@ -43,9 +43,10 @@ export default function TaskDetail({ task, onClose, onDeleted }: Props) {
       const corruptedSpan = task.recurring && spanDays >= intDays;
 
       if (corruptedSpan) {
-        // Show only dueDate (canonical occurrence date — startDate is from a different occurrence)
+        // Use dueDate's date (correct occurrence) + startDate's time (correct start time)
+        const startTimeOnly = task.startDate.includes('T') ? task.startDate.split('T')[1].slice(0, 5) : null;
         const datePart = format(due, 'd. M. yyyy', { locale: cs });
-        return dueHasTime ? `${datePart}, ${format(due, 'H:mm')}` : datePart;
+        return startTimeOnly ? `${datePart}, ${startTimeOnly}` : datePart;
       }
 
       const sameDay = startOfDay(start).getTime() === startOfDay(due).getTime();
