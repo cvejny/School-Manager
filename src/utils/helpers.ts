@@ -67,45 +67,58 @@ function getRelativeDateLabel(date: Date): string {
   return format(date, 'd. MMM', { locale: cs });
 }
 
-/** Returns display text + overdue flag for TaskCard date badge.
- *  Uses startDate as primary anchor; shows full range when start != end.
- *  Pass recurringInterval to suppress corrupted multi-day spans on recurring tasks. */
+/** Returns display text + overdue flag for TaskCard date badge. */
 export function formatTaskDateDisplay(
   startDate: string | null,
   dueDate: string | null,
   recurringInterval?: RecurringInterval | null,
 ): { text: string; overdue: boolean } {
-  // Suppress startDate if span >= recurring interval (corrupted data)
+  const overdue =
+    !!dueDate &&
+    isBefore(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
+
+  // Corrupted span: startDate and dueDate are >= one full interval apart on a recurring task
   const spanDays = startDate && dueDate
     ? differenceInDays(startOfDay(parseISO(dueDate)), startOfDay(parseISO(startDate)))
     : 0;
   const corruptedSpan = !!recurringInterval && spanDays >= intervalToDays(recurringInterval);
 
-  // Skip startDate if it's already in the past or data is corrupted
-  const effectiveStart =
-    corruptedSpan || (startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date())))
-      ? null
-      : startDate;
+  // startDate in the past is irrelevant as range anchor
+  const startInPast = !!startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date()));
 
-  const primaryStr = effectiveStart || dueDate;
-  if (!primaryStr) return { text: '', overdue: false };
+  // Primary anchor: prefer startDate unless past or corrupted
+  const primaryStr = (!startInPast && startDate) ? startDate : (dueDate ?? null);
+  if (!primaryStr) return { text: '', overdue };
 
   const primary = parseISO(primaryStr);
   const primaryHasTime = primaryStr.includes('T');
-  const primaryLabel = getRelativeDateLabel(primary);
-  const startTimePart = primaryHasTime ? ` v ${format(primary, 'H:mm')}` : '';
 
-  // Overdue is determined by dueDate being in the past (whole day)
-  const overdue =
-    !!dueDate &&
-    isBefore(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
+  // Date label: for timed events only Dnes/Zítra, otherwise also "Za N dny"
+  const dateLabel = (d: Date, hasTime: boolean): string => {
+    if (isToday(d)) return 'Dnes';
+    if (isTomorrow(d)) return 'Zítra';
+    if (!hasTime) {
+      const diff = differenceInDays(startOfDay(d), startOfDay(new Date()));
+      if (diff >= 2 && diff <= 4) return `Za ${diff} dny`;
+    }
+    return format(d, 'd. MMM', { locale: cs });
+  };
 
-  // Show end segment whenever start and end are different dates/times
+  const primaryLabel = dateLabel(primary, primaryHasTime);
+  const startTimePart = primaryHasTime ? ` ${format(primary, 'H:mm')}` : '';
+
+  // Build end segment — skip if corrupted or start is past or no valid end
   let endPart = '';
-  if (effectiveStart && dueDate && effectiveStart !== dueDate) {
-    const end = parseISO(dueDate);
-    const endHasTime = dueDate.includes('T');
-    endPart = ` – ${getRelativeDateLabel(end)}${endHasTime ? ` v ${format(end, 'H:mm')}` : ''}`;
+  const showEnd = !corruptedSpan && !startInPast && startDate && dueDate && startDate !== dueDate;
+  if (showEnd) {
+    const end = parseISO(dueDate!);
+    const endHasTime = dueDate!.includes('T');
+    const sameDay = startOfDay(primary).getTime() === startOfDay(end).getTime();
+    if (sameDay && primaryHasTime && endHasTime) {
+      endPart = `–${format(end, 'H:mm')}`;
+    } else {
+      endPart = ` – ${dateLabel(end, endHasTime)}${endHasTime ? ` ${format(end, 'H:mm')}` : ''}`;
+    }
   }
 
   return { text: `${primaryLabel}${startTimePart}${endPart}`, overdue };

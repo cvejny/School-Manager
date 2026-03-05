@@ -3,10 +3,10 @@ import {
   X, Edit3, Trash2, Plus, Check, Circle, Flag,
   Calendar, Tag, ChevronDown, ChevronRight, BookOpen, Clock, Ban,
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInCalendarDays, startOfDay } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { useApp } from '../context/AppContext';
-import { PRIORITY_CONFIG, formatDueDate, isOverdue, hasExplicitTime } from '../utils/helpers';
+import { PRIORITY_CONFIG, formatDueDate, isOverdue } from '../utils/helpers';
 import DynamicIcon from './DynamicIcon';
 import type { Task } from '../types';
 import TaskModal from './modals/TaskModal';
@@ -27,22 +27,39 @@ export default function TaskDetail({ task, onClose, onDeleted }: Props) {
   const cfg = PRIORITY_CONFIG[task.priority];
   const overdue = isOverdue(task.dueDate);
 
-  const formatDateLabel = (dateStr: string) => {
-    const d = parseISO(dateStr);
-    const datePart = format(d, 'd. M. yyyy', { locale: cs });
-    return hasExplicitTime(dateStr)
-      ? `${datePart}, ${dateStr.split('T')[1].slice(0, 5)}`
-      : datePart;
-  };
-
   const dateLabel = (() => {
     if (!task.dueDate) return null;
+    const due = parseISO(task.dueDate);
+    const dueHasTime = task.dueDate.includes('T');
+
     if (task.startDate) {
-      const from = formatDateLabel(task.startDate);
-      const to = formatDateLabel(task.dueDate);
-      return `${from} – ${to}`;
+      const start = parseISO(task.startDate);
+      const startHasTime = task.startDate.includes('T');
+
+      // Corrupted span check for recurring tasks
+      const spanDays = differenceInCalendarDays(startOfDay(due), startOfDay(start));
+      const intervalDaysMap: Record<string, number> = { daily: 1, weekly: 7, biweekly: 14, monthly: 30 };
+      const intDays = task.recurringInterval ? (intervalDaysMap[task.recurringInterval] ?? 999) : 999;
+      const corruptedSpan = task.recurring && spanDays >= intDays;
+
+      if (corruptedSpan) {
+        // Show only start
+        const datePart = format(start, 'd. M. yyyy', { locale: cs });
+        return startHasTime ? `${datePart}, ${format(start, 'H:mm')}` : datePart;
+      }
+
+      const sameDay = startOfDay(start).getTime() === startOfDay(due).getTime();
+      if (sameDay && startHasTime && dueHasTime) {
+        return `${format(start, 'd. M. yyyy', { locale: cs })}, ${format(start, 'H:mm')}–${format(due, 'H:mm')}`;
+      }
+
+      const fromPart = `${format(start, 'd. M. yyyy', { locale: cs })}${startHasTime ? `, ${format(start, 'H:mm')}` : ''}`;
+      const toPart = `${format(due, 'd. M. yyyy', { locale: cs })}${dueHasTime ? `, ${format(due, 'H:mm')}` : ''}`;
+      return `${fromPart} – ${toPart}`;
     }
-    return formatDateLabel(task.dueDate);
+
+    const datePart = format(due, 'd. M. yyyy', { locale: cs });
+    return dueHasTime ? `${datePart}, ${format(due, 'H:mm')}` : datePart;
   })();
 
   const handleAddSubTask = () => {
