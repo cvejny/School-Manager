@@ -122,7 +122,11 @@ export default function Calendar() {
     .filter(t => t.dueDate)
     .map(t => {
       const end = startOfDay(parseISO(t.dueDate!));
-      const start = t.startDate ? startOfDay(parseISO(t.startDate)) : end;
+      const rawStart = t.startDate ? startOfDay(parseISO(t.startDate)) : end;
+      // Safeguard: if task is recurring and span >= interval, the startDate is corrupted — treat as single-day
+      const spanDays = differenceInCalendarDays(end, rawStart);
+      const corruptedSpan = t.recurring && t.recurringInterval && spanDays >= intervalToDays(t.recurringInterval);
+      const start = corruptedSpan ? end : rawStart;
       return {
         task: t,
         subject: data.subjects.find(s => s.id === t.subjectId),

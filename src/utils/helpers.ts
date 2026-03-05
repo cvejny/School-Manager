@@ -1,6 +1,15 @@
 import { format, differenceInDays, isPast, isToday, isTomorrow, parseISO, startOfDay, isBefore } from 'date-fns';
 import { cs } from 'date-fns/locale';
-import type { Priority, Task } from '../types';
+import type { Priority, Task, RecurringInterval } from '../types';
+
+function intervalToDays(interval: RecurringInterval): number {
+  switch (interval) {
+    case 'daily': return 1;
+    case 'weekly': return 7;
+    case 'biweekly': return 14;
+    case 'monthly': return 30;
+  }
+}
 
 export const BASIC_COLORS = [
   '#ef4444', // červená
@@ -59,14 +68,22 @@ function getRelativeDateLabel(date: Date): string {
 }
 
 /** Returns display text + overdue flag for TaskCard date badge.
- *  Uses startDate as primary anchor; shows full range when start != end. */
+ *  Uses startDate as primary anchor; shows full range when start != end.
+ *  Pass recurringInterval to suppress corrupted multi-day spans on recurring tasks. */
 export function formatTaskDateDisplay(
   startDate: string | null,
   dueDate: string | null,
+  recurringInterval?: RecurringInterval | null,
 ): { text: string; overdue: boolean } {
-  // Skip startDate if it's already in the past (e.g. cancelled recurring occurrence)
+  // Suppress startDate if span >= recurring interval (corrupted data)
+  const spanDays = startDate && dueDate
+    ? Math.abs((parseISO(dueDate).getTime() - parseISO(startDate).getTime()) / 86400000)
+    : 0;
+  const corruptedSpan = !!recurringInterval && spanDays >= intervalToDays(recurringInterval);
+
+  // Skip startDate if it's already in the past or data is corrupted
   const effectiveStart =
-    startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date()))
+    corruptedSpan || (startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date())))
       ? null
       : startDate;
 

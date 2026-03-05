@@ -14,7 +14,7 @@ export default function TaskCard({ task, onClick, showSubject = true }: Props) {
   const { data, updateTask } = useApp();
   const subject = data.subjects.find(s => s.id === task.subjectId);
   const cfg = PRIORITY_CONFIG[task.priority];
-  const { text: dateText, overdue: dateOverdue } = formatTaskDateDisplay(task.startDate, task.dueDate);
+  const { text: dateText, overdue: dateOverdue } = formatTaskDateDisplay(task.startDate, task.dueDate, task.recurringInterval);
   const completedSubs = task.subTasks.filter(s => s.done).length;
   const isDone = task.status === 'done' || task.status === 'wont_do';
 
