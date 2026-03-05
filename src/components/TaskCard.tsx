@@ -1,5 +1,5 @@
-import { Calendar, CheckSquare, Flag, Clock } from 'lucide-react';
-import { PRIORITY_CONFIG, formatDueDate, isOverdue, hasExplicitTime } from '../utils/helpers';
+import { Calendar, CheckSquare } from 'lucide-react';
+import { PRIORITY_CONFIG, formatTaskDateDisplay } from '../utils/helpers';
 import DynamicIcon from './DynamicIcon';
 import { useApp } from '../context/AppContext';
 import type { Task } from '../types';
@@ -14,7 +14,7 @@ export default function TaskCard({ task, onClick, showSubject = true }: Props) {
   const { data, updateTask } = useApp();
   const subject = data.subjects.find(s => s.id === task.subjectId);
   const cfg = PRIORITY_CONFIG[task.priority];
-  const overdue = isOverdue(task.dueDate);
+  const { text: dateText, overdue: dateOverdue } = formatTaskDateDisplay(task.startDate, task.dueDate);
   const completedSubs = task.subTasks.filter(s => s.done).length;
   const isDone = task.status === 'done' || task.status === 'wont_do';
 
@@ -54,16 +54,10 @@ export default function TaskCard({ task, onClick, showSubject = true }: Props) {
               </div>
             )}
 
-            {task.dueDate && (
-              <div className={`flex items-center gap-1 text-xs ${overdue ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+            {(task.startDate || task.dueDate) && dateText && (
+              <div className={`flex items-center gap-1 text-xs ${dateOverdue ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
                 <Calendar size={11} />
-                <span>{formatDueDate(task.dueDate)}</span>
-                {hasExplicitTime(task.dueDate) && (
-                  <>
-                    <Clock size={10} className="ml-0.5" />
-                    <span>{task.dueDate.split('T')[1].slice(0, 5)}</span>
-                  </>
-                )}
+                <span>{dateText}</span>
               </div>
             )}
 

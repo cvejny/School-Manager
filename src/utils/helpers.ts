@@ -49,6 +49,44 @@ export const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; b
   urgent: { label: 'Urgentní', color: 'text-red-600 dark:text-red-400',      bg: 'bg-red-100 dark:bg-red-900/40',      darkBg: 'dark:bg-red-900/40',    border: 'border-red-200 dark:border-red-800' },
 };
 
+function getRelativeDateLabel(date: Date): string {
+  if (isToday(date)) return 'Dnes';
+  if (isTomorrow(date)) return 'Zítra';
+  const diff = differenceInDays(startOfDay(date), startOfDay(new Date()));
+  if (diff >= 2 && diff <= 4) return `Za ${diff} dny`;
+  if (diff < 0) return 'Po termínu';
+  return format(date, 'd. MMM', { locale: cs });
+}
+
+/** Returns display text + overdue flag for TaskCard date badge.
+ *  Uses startDate as primary anchor; shows time range when both start and end times exist. */
+export function formatTaskDateDisplay(
+  startDate: string | null,
+  dueDate: string | null,
+): { text: string; overdue: boolean } {
+  const primaryStr = startDate || dueDate;
+  if (!primaryStr) return { text: '', overdue: false };
+
+  const primary = parseISO(primaryStr);
+  const primaryHasTime = primaryStr.includes('T');
+  const primaryLabel = getRelativeDateLabel(primary);
+  const startTimePart = primaryHasTime ? ` v ${format(primary, 'H:mm')}` : '';
+
+  // Overdue is determined by dueDate being in the past (whole day)
+  const overdue =
+    !!dueDate &&
+    isBefore(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
+
+  // Show end segment only when a distinct dueDate with time exists alongside a startDate
+  let endPart = '';
+  if (startDate && dueDate && startDate !== dueDate && dueDate.includes('T')) {
+    const end = parseISO(dueDate);
+    endPart = ` – ${getRelativeDateLabel(end)} v ${format(end, 'H:mm')}`;
+  }
+
+  return { text: `${primaryLabel}${startTimePart}${endPart}`, overdue };
+}
+
 export function formatDueDate(dateStr: string | null, showTime = false): string {
   if (!dateStr) return 'Bez termínu';
   const hasTime = dateStr.includes('T');
