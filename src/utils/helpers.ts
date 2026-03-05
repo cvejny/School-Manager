@@ -107,7 +107,7 @@ export function formatTaskDateDisplay(
   const primaryLabel = dateLabel(primary, primaryHasTime);
   const startTimePart = primaryHasTime ? ` ${format(primary, 'H:mm')}` : '';
 
-  // Build end segment — skip if corrupted or start is past or no valid end
+  // Build end segment — only for same-day timed events (e.g. "Zítra 10:45–11:30")
   let endPart = '';
   const showEnd = !corruptedSpan && !startInPast && startDate && dueDate && startDate !== dueDate;
   if (showEnd) {
@@ -116,9 +116,8 @@ export function formatTaskDateDisplay(
     const sameDay = startOfDay(primary).getTime() === startOfDay(end).getTime();
     if (sameDay && primaryHasTime && endHasTime) {
       endPart = `–${format(end, 'H:mm')}`;
-    } else {
-      endPart = ` – ${dateLabel(end, endHasTime)}${endHasTime ? ` ${format(end, 'H:mm')}` : ''}`;
     }
+    // Different days: don't show range in compact card view — full range is in TaskDetail
   }
 
   return { text: `${primaryLabel}${startTimePart}${endPart}`, overdue };
