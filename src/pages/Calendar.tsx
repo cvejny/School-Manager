@@ -47,20 +47,34 @@ function expandRecurring(task: Task, gridStart: Date, gridEnd: Date, subject: Su
   if (task.status === 'done' || task.status === 'wont_do') return [];
 
   const events: CalEvent[] = [];
-  let current = advanceDate(startOfDay(parseISO(task.dueDate)), task.recurringInterval);
+  const baseDue = startOfDay(parseISO(task.dueDate));
+  const baseStart = task.startDate ? startOfDay(parseISO(task.startDate)) : baseDue;
+  // Duration in days between startDate and dueDate of the original task
+  const durationDays = differenceInCalendarDays(baseDue, baseStart);
+
+  let currentDue = advanceDate(baseDue, task.recurringInterval);
   const endDate = task.recurringEndDate ? startOfDay(parseISO(task.recurringEndDate)) : null;
   let count = 1; // first occurrence is the real task
   const maxCount = task.recurringEndCount ?? Infinity;
 
-  while (!isAfter(current, gridEnd) && count < 500) {
+  while (!isAfter(currentDue, gridEnd) && count < 500) {
     count++;
     if (task.recurringEnd === 'count' && count > maxCount) break;
-    if (task.recurringEnd === 'date' && endDate && isAfter(current, endDate)) break;
-    if (!isBefore(current, gridStart)) {
-      const virtualTask: Task = { ...task, id: task.id, dueDate: format(current, 'yyyy-MM-dd'), startDate: null };
-      events.push({ task: virtualTask, subject, startDay: current, endDay: current, virtual: true });
+    if (task.recurringEnd === 'date' && endDate && isAfter(currentDue, endDate)) break;
+    const currentStart = durationDays > 0 ? addDays(currentDue, -durationDays) : currentDue;
+    if (!isBefore(currentDue, gridStart)) {
+      const dueDateStr = task.dueDate.includes('T')
+        ? format(currentDue, "yyyy-MM-dd") + 'T' + task.dueDate.split('T')[1]
+        : format(currentDue, 'yyyy-MM-dd');
+      const startDateStr = task.startDate
+        ? (task.startDate.includes('T')
+            ? format(currentStart, "yyyy-MM-dd") + 'T' + task.startDate.split('T')[1]
+            : format(currentStart, 'yyyy-MM-dd'))
+        : null;
+      const virtualTask: Task = { ...task, id: task.id, dueDate: dueDateStr, startDate: startDateStr };
+      events.push({ task: virtualTask, subject, startDay: currentStart, endDay: currentDue, virtual: true });
     }
-    current = advanceDate(current, task.recurringInterval);
+    currentDue = advanceDate(currentDue, task.recurringInterval);
   }
   return events;
 }
