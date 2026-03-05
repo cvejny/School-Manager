@@ -258,11 +258,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })();
       if (canCreate) {
         const nextDueDate = calculateNextDueDate(currentTask.dueDate, currentTask.recurringInterval);
+        const nextStartDate = currentTask.startDate
+          ? calculateNextDueDate(currentTask.startDate, currentTask.recurringInterval)
+          : null;
         // Decrement count for next occurrence
         const nextEndCount = currentTask.recurringEnd === 'count' && currentTask.recurringEndCount !== null
           ? currentTask.recurringEndCount - 1 : currentTask.recurringEndCount;
         nextTask = {
           ...currentTask, id: uuidv4(), status: 'todo', dueDate: nextDueDate,
+          startDate: nextStartDate,
           recurringEndCount: nextEndCount,
           subTasks: currentTask.subTasks.map(st => ({ ...st, done: false })),
           createdAt: now, updatedAt: now,

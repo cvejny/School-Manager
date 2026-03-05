@@ -59,12 +59,18 @@ function getRelativeDateLabel(date: Date): string {
 }
 
 /** Returns display text + overdue flag for TaskCard date badge.
- *  Uses startDate as primary anchor; shows time range when both start and end times exist. */
+ *  Uses startDate as primary anchor; shows full range when start != end. */
 export function formatTaskDateDisplay(
   startDate: string | null,
   dueDate: string | null,
 ): { text: string; overdue: boolean } {
-  const primaryStr = startDate || dueDate;
+  // Skip startDate if it's already in the past (e.g. cancelled recurring occurrence)
+  const effectiveStart =
+    startDate && isBefore(startOfDay(parseISO(startDate)), startOfDay(new Date()))
+      ? null
+      : startDate;
+
+  const primaryStr = effectiveStart || dueDate;
   if (!primaryStr) return { text: '', overdue: false };
 
   const primary = parseISO(primaryStr);
@@ -77,11 +83,12 @@ export function formatTaskDateDisplay(
     !!dueDate &&
     isBefore(startOfDay(parseISO(dueDate)), startOfDay(new Date()));
 
-  // Show end segment only when a distinct dueDate with time exists alongside a startDate
+  // Show end segment whenever start and end are different dates/times
   let endPart = '';
-  if (startDate && dueDate && startDate !== dueDate && dueDate.includes('T')) {
+  if (effectiveStart && dueDate && effectiveStart !== dueDate) {
     const end = parseISO(dueDate);
-    endPart = ` – ${getRelativeDateLabel(end)} v ${format(end, 'H:mm')}`;
+    const endHasTime = dueDate.includes('T');
+    endPart = ` – ${getRelativeDateLabel(end)}${endHasTime ? ` v ${format(end, 'H:mm')}` : ''}`;
   }
 
   return { text: `${primaryLabel}${startTimePart}${endPart}`, overdue };
