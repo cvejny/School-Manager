@@ -3,7 +3,7 @@ import { GraduationCap, Mail, Lock, Loader2, CheckCircle2, AlertCircle } from 'l
 import { useAuth } from '../context/AuthContext'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
 
-const HCAPTCHA_SITE_KEY = import.meta.env.VITE_HCAPTCHA_SITE_KEY as string
+const HCAPTCHA_SITE_KEY = 'f93822dc-6aa8-4402-81ca-c6b8b87c482c'
 
 export default function Auth() {
   const { signIn, signUp } = useAuth()
