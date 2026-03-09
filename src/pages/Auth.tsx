@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { GraduationCap, Mail, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
+
+const HCAPTCHA_SITE_KEY = import.meta.env.VITE_HCAPTCHA_SITE_KEY as string
 
 export default function Auth() {
   const { signIn, signUp } = useAuth()
@@ -10,25 +13,33 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captchaRef = useRef<HCaptcha>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
+    if (!captchaToken) {
+      setError('Prosím potvrď, že nejsi robot.')
+      return
+    }
     setLoading(true)
     setError(null)
     setSuccess(null)
 
     if (tab === 'login') {
-      const { error } = await signIn(email, password)
+      const { error } = await signIn(email, password, captchaToken)
       if (error) setError(error)
     } else {
-      const { error, needsConfirmation } = await signUp(email, password)
+      const { error, needsConfirmation } = await signUp(email, password, captchaToken)
       if (error) setError(error)
       else if (needsConfirmation) {
         setSuccess('Účet vytvořen! Zkontroluj svůj email a potvrď registraci.')
       }
       // if no error and no needsConfirmation, AuthContext will auto-login
     }
+    captchaRef.current?.resetCaptcha()
+    setCaptchaToken(null)
     setLoading(false)
   }
 
@@ -112,6 +123,15 @@ export default function Auth() {
                 {success}
               </div>
             )}
+
+            <div className="flex justify-center">
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={HCAPTCHA_SITE_KEY}
+                onVerify={token => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+              />
+            </div>
 
             <button
               type="submit"
